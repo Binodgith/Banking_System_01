@@ -7,11 +7,11 @@ import java.sql.Connection;
 public class DBConnector {
     private static final  String ClassUrl = "com.mysql.cj.jdbc.Driver";
     private static final String ConnectionUrl= "jdbc:mysql://localhost:3306/firstdatabase";
-    private String Userid= "root";
-    private String Password= "pass";
-    private static DBConnector connector= null;
-
-    DBConnector(){
+    private final String Userid= "root";
+    private final String Password= "pass";
+//    private static DBConnector connector= null;
+//
+    public DBConnector(){
         try{
             Class.forName(ClassUrl);
         }
@@ -20,15 +20,11 @@ public class DBConnector {
         }
     }
 
-    public static DBConnector getInstance(){
-        if(connector==null){
-            connector= new DBConnector();
-        }
-        return connector;
-    }
 
     public Connection getConnection() {
+
         Connection con = null;
+
         try {
             con = DriverManager.getConnection(ConnectionUrl, Userid, Password);
         } catch (SQLException e) {

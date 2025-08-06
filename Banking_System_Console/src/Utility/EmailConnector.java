@@ -18,6 +18,8 @@ public class EmailConnector {
     HttpRequest request;
     HttpResponse<String> response;
 
+    JSONObject json;
+
 
 
     public String SendOtp(String email, String name){
@@ -63,23 +65,23 @@ public class EmailConnector {
     }
 
 
-    public static void main(String[] args) {
-
-        JSONObject json;
-        EmailConnector ec = new EmailConnector();
-        String res= ec.SendOtp("dbinod2020@gmail.com","Bino");
-//        String verifyRes= ec.verifyOTp(358169,"dbinod2020@gmail.com",743351452);
-
-//        System.out.println(res.body());
-
-        json = new JSONObject(res);
-
-        System.out.println(json.getString("token_number"));
-        System.out.println(json.getString("message"));
-        System.out.println(json.getBoolean("sent_status"));
-
+//    public static void main(String[] args) {
+//
+//        JSONObject json;
+//        EmailConnector ec = new EmailConnector();
+//        String res= ec.SendOtp("dbinod2020@gmail.com","Bino");
+////        String verifyRes= ec.verifyOTp(358169,"dbinod2020@gmail.com",743351452);
+//
+////        System.out.println(res.body());
+//
+//        json = new JSONObject(res);
+//
+//        System.out.println(json.getString("token_number"));
 //        System.out.println(json.getString("message"));
-
-
-    }
+//        System.out.println(json.getBoolean("sent_status"));
+//
+////        System.out.println(json.getString("message"));
+//
+//
+//    }
 }
