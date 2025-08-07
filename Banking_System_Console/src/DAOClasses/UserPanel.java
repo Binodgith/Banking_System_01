@@ -113,6 +113,7 @@ public class UserPanel implements UserInterface{
                 if (ec!=null){
                     json.clear();
                 }
+
             }
             catch (SQLException e){
                 throw new AccountException(e.getMessage());
@@ -149,6 +150,7 @@ public class UserPanel implements UserInterface{
                 if(pst!=null){
                     pst.close();
                 }
+
             }
             catch (SQLException e){
                 throw new CredentialException(e.getMessage());
@@ -158,14 +160,130 @@ public class UserPanel implements UserInterface{
 
     }
 
-    @Override
-    public long UserLogin(String username, String password) {
-        return 0;
-    }
+//    -----------------------------------User login method-----------------------------------
+
 
     @Override
-    public double CheckBalance(long accountno, String username) {
-        return 0;
+    public long UserLogin(String username, String password) throws UserException {
+
+        try{
+            connection = connector.getConnection();
+            pst = connection.prepareStatement("select * from account_requests where username=? and password=?");
+            pst.setString(1,username);
+            pst.setString(2,password);
+            ResultSet res1= pst.executeQuery();
+
+            if(!res1.next()){
+                pst= connection.prepareStatement("select accountno,email,name from user_account where username=? and password=?");
+                pst.setString(1,username);
+                pst.setString(2,password);
+
+                ResultSet res2= pst.executeQuery();
+                if (res2.next()){
+
+// --------------------------------------Email OTP Sent----||--------------------------
+
+                    try{
+                        ec= new EmailConnector();
+                        String APIResponse= ec.SendOtp(res2.getString("email"),res2.getString("name"));
+                        json = new JSONObject(APIResponse);
+                        Scanner scanner = null;
+                        boolean OTP_Verified=false;
+
+                        if(json.getBoolean("sent_status")){
+                            long otp_token= json.getLong("token_number");
+                            System.out.println(ConsoleColors.GREEN_BRIGHT+json.getString("message")+ConsoleColors.RESET);
+                            int entryCount=0;
+                            while (!OTP_Verified){
+                                System.out.println("Enter Email Otp (Valid till 5 minutes only");
+                                int otp= scanner.nextInt();
+                                String OTPResponse= ec.verifyOTp(otp, res2.getString("email"), otp_token);
+
+                                json = new JSONObject(OTPResponse);
+                                if(json.getBoolean("verify_status")) {
+                                    OTP_Verified=true;
+                                    System.out.println(json.getString("message"));
+                                    break;
+                                }
+                                else {
+                                    entryCount++;
+                                    if (entryCount>=2){
+                                        break;
+                                    }
+                                    System.out.println(ConsoleColors.RED_BACKGROUND_BRIGHT+json.getString("message")+ConsoleColors.RESET);
+                                }
+
+                            }
+                            //--------------------------------------------Email OTP Verified -------------------------------
+
+                            if (OTP_Verified){
+                                return res2.getLong("accountno");
+                            }
+                            else throw new UserException("Email Otp not verified!");
+
+                        }
+                        else {
+                            throw new UserException("Unable to sent OTP! Try Again");
+                        }
+                    }
+                    catch (SQLException e){
+                        throw new UserException(e.getMessage());
+                    }
+
+                }
+                else {
+                    throw new UserException("Invalid Credential");
+                }
+            }
+            else{
+                throw new UserException("Your Account is pending for approval ! Contact Bank");
+            }
+
+
+        }
+        catch (Exception e){
+            throw new UserException(e.getMessage());
+        }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new UserException(e.getMessage());
+            }
+        }
+
+
+    }
+
+
+
+
+
+//    ------------------------------Account balance Checking-------------------------------
+
+    @Override
+    public double CheckBalance(long accountno, String username) throws AccountException {
+        try{
+            connection=connector.getConnection();
+            pst= connection.prepareStatement("select balance from user_account where accountno=? and username=?");
+            pst.setLong(1,accountno);
+            pst.setString(2,username);
+
+            ResultSet res= pst.executeQuery();
+
+            return res.getDouble("balance");
+        }
+        catch (Exception e){
+            throw new AccountException(e.getMessage());
+        }
+
     }
 
     @Override
