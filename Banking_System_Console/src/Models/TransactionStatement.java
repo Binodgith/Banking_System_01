@@ -8,6 +8,7 @@ public class TransactionStatement {
     private String Remark;
     private Date date;
 
+
     public TransactionStatement(long accountno, int transactionID, String remark, Date date) {
         this.accountno = accountno;
         this.transactionID = transactionID;

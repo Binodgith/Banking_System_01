@@ -4,25 +4,26 @@ import Exceptions.*;
 import Models.TransactionStatement;
 import Models.UserAccount;
 import Styles.ConsoleColors;
-import Utility.DBConnector;
-import Utility.EmailConnector;
+import Utility.*;
 import org.json.JSONObject;
 import Styles.ConsoleColors.*;
+
+import java.net.CacheRequest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class UserPanel implements UserInterface{
 
     DBConnector connector= new DBConnector();
+    PasswordEncrypter encrypter= new PasswordEncrypter();
     Connection connection;
     PreparedStatement pst;
 
-    long Temp_accountno;
-    String Temp_username;
+    static long Temp_accountno;
+    static String Temp_username;
     EmailConnector ec;
     JSONObject json;
 
@@ -80,7 +81,7 @@ public class UserPanel implements UserInterface{
                     pst.setString(3, uc.getMobile());
                     pst.setString(4, uc.getAadhar());
                     pst.setString(5, uc.getName());
-                    pst.setString(6, uc.getPassword());
+                    pst.setString(6, encrypter.hashPassword(uc.getPassword()));
                     pst.setInt(7,uc.getTransaction_pin());
 
                     int response= pst.executeUpdate();
@@ -170,13 +171,13 @@ public class UserPanel implements UserInterface{
             connection = connector.getConnection();
             pst = connection.prepareStatement("select * from account_requests where username=? and password=?");
             pst.setString(1,username);
-            pst.setString(2,password);
+            pst.setString(2,encrypter.hashPassword(password));
             ResultSet res1= pst.executeQuery();
 
             if(!res1.next()){
                 pst= connection.prepareStatement("select accountno,email,name from user_account where username=? and password=?");
                 pst.setString(1,username);
-                pst.setString(2,password);
+                pst.setString(2,encrypter.hashPassword(password));
 
                 ResultSet res2= pst.executeQuery();
                 if (res2.next()){
@@ -202,6 +203,8 @@ public class UserPanel implements UserInterface{
                                 json = new JSONObject(OTPResponse);
                                 if(json.getBoolean("verify_status")) {
                                     OTP_Verified=true;
+                                    Temp_username=username;
+                                    Temp_accountno= res2.getLong("email");
                                     System.out.println(json.getString("message"));
                                     break;
                                 }
@@ -283,36 +286,370 @@ public class UserPanel implements UserInterface{
         catch (Exception e){
             throw new AccountException(e.getMessage());
         }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new AccountException(e.getMessage());
+            }
+        }
 
     }
 
     @Override
-    public boolean Debit(double amount) {
-        return false;
+    public boolean Debit(double amount,long accountno,boolean isbank) throws TransactionException {
+
+        try{
+            connection= connector.getConnection();
+            pst= connection.prepareStatement("select balance from user_account when accountno=?");
+            pst.setLong(1,accountno);
+
+
+            ResultSet res1= pst.executeQuery();
+            if (res1.next()){
+                if (res1.getDouble("balance")>=amount){
+                    try{
+                        pst= connection.prepareStatement("update user_account set balance=balance-? where accountno=?  and balance>=?");
+                        pst.setLong(2,accountno);
+
+                        pst.setDouble(1,amount);
+                        pst.setDouble(3,amount);
+
+                        int res2= pst.executeUpdate();
+                        if(res2>0){
+                            String Remark= "Amount Debited from AC No.: "+accountno+" via User.";
+                            boolean ReportRes=AddTransaction(accountno,Remark,"DEBIT",amount);
+                            if (ReportRes) return true;
+                            else throw  new TransactionException("Unable to Add Report ! Try Again.");
+
+                        }
+                        else{
+                            throw new TransactionException("Unable to Debit amount ! Try Again.");
+                        }
+                    }
+                    catch (SQLException e){
+                        throw new TransactionException(e.getMessage());
+                    }
+
+
+                }
+                else{
+                    throw new TransactionException("Account balance is lower than Debit Amount.");
+
+                }
+            }
+            else {
+                throw new TransactionException("No account Found !");
+            }
+        }
+        catch (Exception e){
+            throw new TransactionException(e.getMessage());
+        }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new TransactionException(e.getMessage());
+            }
+        }
+
+    }
+
+
+
+
+    @Override
+    public boolean Credit(double amount, long accountno,boolean isbank) throws TransactionException {
+
+        try{
+            connection =connector.getConnection();
+            pst= connection.prepareStatement("update user_account set balance=balance+? where accountno=?");
+            pst.setDouble(1,amount);
+            pst.setLong(2,accountno);
+
+
+            int res= pst.executeUpdate();
+            if(res>0){
+                if (isbank){
+                    String Remark= "Amount Credited from AC No.: "+accountno+" via Bank.";
+                    boolean ReportRes=AddTransaction(accountno,Remark,"CREDIT",amount);
+                    if (ReportRes) return true;
+                    else throw  new TransactionException("Unable to Add Report ! Try Again.");
+                }
+                else{
+                    return true;
+                }
+
+
+
+            }
+            else {
+                throw new TransactionException("Unable to Credit amount ! Try Again.");
+
+            }
+
+
+        }
+        catch (Exception e){
+            throw new TransactionException(e.getMessage());
+        }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new TransactionException(e.getMessage());
+            }
+        }
+
     }
 
     @Override
-    public boolean Credit(double amount) {
-        return false;
+    public boolean TransferAmount(double amount,long fromaccount, long toaccountno) throws TransactionException {
+        try{
+            connection= connector.getConnection();
+            pst= connection.prepareStatement("select name from user_account where accountno=?");
+            pst.setLong(1,toaccountno);
+
+            ResultSet res1= pst.executeQuery();
+
+            if (res1.next()){
+                pst= connection.prepareStatement("select balance from user_account where accountno=?");
+                pst.setLong(1,fromaccount);
+                ResultSet res2= pst.executeQuery();
+
+                if (res2.next() && res2.getDouble("balance")>=amount){
+                    boolean isDebit=Debit(amount,fromaccount,false);
+                    if (isDebit) {
+                        boolean isCredit= Credit(amount,toaccountno,false);
+
+                        if (isCredit){
+                            String fromRemark= "Amount Transfered from AC No.: "+fromaccount+" to "+"Ac No.: "+toaccountno+"("+res1.getString("name") +")"+" by User";
+                            String toRemark= "Amount Receieved from AC No.: "+fromaccount+" to "+"Ac No.: "+toaccountno+ " by User";
+
+                            boolean ReportRes=AddTransaction(fromaccount,fromRemark,"DEBIT",amount);
+                            boolean RepotRes2= AddTransaction(toaccountno,toRemark,"CREDIT",amount);
+                            if (ReportRes && RepotRes2) return true;
+                            else throw  new TransactionException("Unable to Add Report ! Try Again.");
+                        }
+                        else {
+                            throw  new TransactionException("Unable to Transfer !");
+                        }
+                    }
+                    else {
+                        throw  new TransactionException("Unable to Transfer !");
+                    }
+
+                }
+                else {
+                    throw new TransactionException("Your Account Balance is lower than Transfer Amount.");
+                }
+
+
+
+            }
+            else{
+                throw new TransactionException("Entered Account number doesn't Exist.");
+
+            }
+        }
+        catch (SQLException e){
+            throw new TransactionException(e.getMessage());
+        }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new TransactionException(e.getMessage());
+            }
+        }
+
+    }
+
+
+
+    @Override
+    public boolean ChangePassword(String username, long accountno,String oldpassword, String newpassword) throws UserException {
+
+        try{
+            connection = connector.getConnection();
+//            String EncryptPassword= encrypter.hashPassword(oldpassword);
+            long resAccount= UserLogin(username,oldpassword);
+
+            if (resAccount==accountno){
+                pst= connection.prepareStatement("update user_account set password=? where username=? and accountno=?");
+                pst.setString(1,encrypter.hashPassword(oldpassword));
+                pst.setString(2,username);
+                pst.setLong(3,accountno);
+
+                int res= pst.executeUpdate();
+                if (res>0) return true;
+                else throw new UserException("Unable to Change password right now.");
+
+            }
+            else {
+                throw new UserException("Old password is wrong!");
+            }
+
+        }
+        catch (SQLException e){
+            throw new UserException(e.getMessage());
+        }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new UserException(e.getMessage());
+            }
+        }
+
     }
 
     @Override
-    public boolean TransferAmount(double amount, long accountno) {
-        return false;
+    public boolean AddTransaction(long accountno, String remark, String tran_type,double amount) throws TransactionException {
+        try{
+            connection= connector.getConnection();
+            pst=connection.prepareStatement("INSERT INTO transaction_statement (accountno, transactionType, remark, amount ) VALUES(?,?,?,?)");
+            pst.setLong(1,accountno);
+            pst.setString(2,tran_type);
+            pst.setString(3,remark);
+            pst.setDouble(4,amount);
+
+            int res= pst.executeUpdate();
+            if (res>0) return true;
+            else throw new TransactionException("Unable to Add Transaction Report ! Try Again");
+
+        }
+        catch (SQLException e){
+            throw new TransactionException(e.getMessage());
+        }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new TransactionException(e.getMessage());
+            }
+        }
+
     }
 
-    @Override
-    public boolean ChangePassword(String oldpassword, String newpassword) {
-        return false;
-    }
 
-    @Override
-    public boolean AddTransaction(long accountno, String remark, String tran_type) {
-        return false;
-    }
 
+//    -----------------------------------Getting Transaction Statement via map key value packed in ArrayList-----------------------------------
     @Override
-    public List<TransactionStatement> TransactionStatement(long accountno, String username) {
-        return List.of();
+    public List<Map> TransactionStatement(long accountno, String username) throws AccountException{
+
+        try{
+            String SQL_Query="SELECT " +
+                    "    date AS Date," +
+                    "    CONCAT(remark, ' || Transaction ID: ', transactionid) AS particulars," +
+                    "    CASE " +
+                    "        WHEN transactionType = 'DEBIT' THEN amount " +
+                    "        ELSE NULL " +
+                    "    END AS DEBIT," +
+                    "    CASE " +
+                    "        WHEN transactionType = 'CREDIT' THEN amount " +
+                    "        ELSE NULL " +
+                    "    END AS CREDIT," +
+                    "    " +
+                    "    SUM(" +
+                    "        CASE " +
+                    "            WHEN transactionType = 'CREDIT' THEN amount" +
+                    "            WHEN transactionType = 'DEBIT' THEN -amount" +
+                    "            ELSE 0" +
+                    "        END" +
+                    "    ) OVER (" +
+                    "        ORDER BY date, transactionid" +
+                    "        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW" +
+                    "    ) AS Balance" +
+                    "" +
+                    "FROM transaction_statement" +
+                    "WHERE accountno =? AND username=?" +
+                    "ORDER BY date DESC, transactionid DESC";
+
+            connection= connector.getConnection();
+            pst= connection.prepareStatement(SQL_Query);
+            pst.setDouble(1,accountno);
+            pst.setString(2,username);
+
+            ResultSet res= pst.executeQuery();
+
+
+            List<Map> list = new ArrayList<>();
+            while (res.next()){
+                Map<String,String> map= new TreeMap<>();
+                map.put("Date", String.valueOf(res.getDate("date")));
+                map.put("Particular",String.valueOf(res.getString("particulars")));
+                map.put("DEBIT",String.valueOf(res.getDouble("DEBIT")));
+                map.put("CREDIT",String.valueOf(res.getDouble("CREDIT")));
+                map.put("Balance",String.valueOf(res.getDouble("Balance")));
+
+                list.add(map);
+            }
+
+            return list;
+
+
+        }
+        catch (SQLException e){
+            throw new AccountException(e.getMessage());
+        }
+        finally {
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+                if(pst!=null){
+                    pst.close();
+                }
+
+            }
+            catch (SQLException e){
+                throw new AccountException(e.getMessage());
+            }
+        }
+
+
     }
 }

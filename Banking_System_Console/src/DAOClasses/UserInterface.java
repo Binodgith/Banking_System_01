@@ -8,6 +8,7 @@ import Models.TransactionStatement;
 import Models.UserAccount;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserInterface {
     boolean CreateAccount(UserAccount uc) throws AccountException, CredentialException;
@@ -18,17 +19,17 @@ public interface UserInterface {
 
     double CheckBalance(long accountno,String username) throws AccountException;
 
-    boolean Debit(double amount) throws TransactionException;
+    boolean Debit(double amount,long accountno,boolean isbank) throws TransactionException;
 
-    boolean Credit(double amount) throws TransactionException;
+    boolean Credit(double amount,long accountno,boolean isbank) throws TransactionException;
 
-    boolean TransferAmount(double amount, long accountno) throws TransactionException;
+    boolean TransferAmount(double amount, long fromaccount, long toaccountno) throws TransactionException;
 
-    boolean ChangePassword(String oldpassword, String newpassword) throws UserException;
+    boolean ChangePassword(String username, long accountno,String oldpassword, String newpassword) throws UserException;
 
-    boolean AddTransaction(long accountno,String remark,String tran_type) throws TransactionException;
+    boolean AddTransaction(long accountno,String remark,String tran_type, double amount) throws TransactionException;
 
-    List<TransactionStatement> TransactionStatement(long accountno,String username) throws AccountException;
+    List<Map> TransactionStatement(long accountno, String username) throws AccountException;
 
 
 

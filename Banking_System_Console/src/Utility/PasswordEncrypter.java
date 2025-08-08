@@ -28,15 +28,15 @@ public class PasswordEncrypter {
     }
 
 
-    public static void main(String[] args) {
-        PasswordEncrypter pe= new PasswordEncrypter();
-        String pass1= pe.hashPassword("Kali@123568");
-        String pass2 = pe.hashPassword("Kali@123568");
-
-        System.out.println(pass1);
-        System.out.println(pass2);
-
-        System.out.println(pass1.equals(pass2));
-
-    }
+//    public static void main(String[] args) {
+//        PasswordEncrypter pe= new PasswordEncrypter();
+//        String pass1= pe.hashPassword("Kali@123568");
+//        String pass2 = pe.hashPassword("Kali@123568");
+//
+//        System.out.println(pass1);
+//        System.out.println(pass2);
+//
+//        System.out.println(pass1.equals(pass2));
+//
+//    }
 }
