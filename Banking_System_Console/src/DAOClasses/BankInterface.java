@@ -17,5 +17,5 @@ public interface BankInterface {
 
     String AccessAccountService(long accountno) throws AccountException;
 
-    boolean ApproveAccountRequest(String username) throws AccountException
+    boolean ApproveAccountRequest(String username) throws AccountException;
 }

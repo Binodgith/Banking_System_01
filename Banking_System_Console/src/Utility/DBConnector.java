@@ -6,7 +6,7 @@ import java.sql.Connection;
 
 public class DBConnector {
     private static final  String ClassUrl = "com.mysql.cj.jdbc.Driver";
-    private static final String ConnectionUrl= "jdbc:mysql://localhost:3306/firstdatabase";
+    private static final String ConnectionUrl= "jdbc:mysql://localhost:3306/Straight_Bank_Of_India";
     private final String Userid= "root";
     private final String Password= "pass";
 //    private static DBConnector connector= null;

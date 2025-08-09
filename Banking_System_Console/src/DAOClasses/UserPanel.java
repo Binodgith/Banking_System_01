@@ -132,8 +132,9 @@ public class UserPanel implements UserInterface{
 
         try{
             connection= connector.getConnection();
-            pst= connection.prepareStatement("select * from account_requests cross join user_account where username=?");
+            pst= connection.prepareStatement("select * from account_requests cross join user_account where account_requests.username=? or user_account.username=?");
             pst.setString(1,username);
+            pst.setString(2,username);
 
             ResultSet res= pst.executeQuery();
             if(!res.next()) return true;
