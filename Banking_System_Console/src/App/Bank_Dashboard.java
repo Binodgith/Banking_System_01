@@ -1,11 +1,9 @@
 package App;
 
 import DAOClasses.BankPanel;
-import Exceptions.AccountException;
-import Exceptions.BankException;
-import Exceptions.CredentialException;
-import Exceptions.TransactionException;
+import Exceptions.*;
 import Models.BankStaff;
+import Models.UserAccount;
 import Styles.ConsoleColors;
 
 import java.io.IOException;
@@ -259,26 +257,26 @@ public class Bank_Dashboard {
                                 }
                                 else if(option.equals("2")){
                                     try{
-                                        List<BankStaff> list = bankPanel.ListStaffDetails();
+                                        List<UserAccount> list = bankPanel.ListAccounts();
 
-                                        System.out.println(ConsoleColors.BOXING+ConsoleColors.BROWN_BACKGROUND+"              List of Bank Staffs           "+ConsoleColors.RESET);
+                                        System.out.println(ConsoleColors.BOXING+ConsoleColors.BROWN_BACKGROUND+"              List of User Account           "+ConsoleColors.RESET);
 
                                         System.out.println("---------------------------------------------------------------------------------");
 
-                                        System.out.printf("%7s %7.5s %10s %15s %18s ",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "Name", "Email Id","Mobile No.", "Aadhar No.", "Role" + ConsoleColors.RESET);
+                                        System.out.printf("%7s %10s %15s %20s %25s %30s %35s",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  +"Username","Account No." ,"Name", "Email Id","Mobile No.", "Aadhar No.", "Active Status" + ConsoleColors.RESET);
                                         System.out.println();
-                                        System.out.print("---------------------------------------------------------------------------------");
+                                        System.out.println("---------------------------------------------------------------------------------");
 
 
-                                        for (BankStaff bs:list){
-                                            System.out.printf("%7s %7.5s %10s %15s %18s ",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + bs.getName(), bs.getEmail(),bs.getMob(), bs.getAadharno(), bs.getRole() + ConsoleColors.RESET);
+                                        for (UserAccount bs:list){
+                                            System.out.printf("%7s %10s %15s %20s %25s %30s %35s",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  +bs.getUsername(),bs.getAccountno(), bs.getName(), bs.getEmail(),bs.getMobile(), bs.getAadhar(), true+ ConsoleColors.RESET);
                                             System.out.println();
 
                                         }
 
                                         System.out.print("---------------------------------------------------------------------------------");
 
-                                    } catch (BankException e) {
+                                    } catch (UserException e) {
                                         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
 
 
