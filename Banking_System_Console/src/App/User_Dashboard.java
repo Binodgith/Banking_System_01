@@ -55,7 +55,7 @@ public class User_Dashboard {
 
 
         while (true){
-            String option= sc.nextLine();
+            String option= sc.next();
 
             if (option.equals("1")){
                 while (true){
@@ -210,21 +210,23 @@ public class User_Dashboard {
                             System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.GREEN_BACKGROUND+"Logged In Succesfully . "+ConsoleColors.RESET);
                             System.out.println();
 
-                            System.out.println("       "+ConsoleColors.BLACK_BOLD+ConsoleColors.ORANGE_BACKGROUND+"                     Hello A/C No.:"+TEMP_USERNAME+ConsoleColors.RESET);
-
-                            System.out.println();
-                            System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 1 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Check Balance"+ConsoleColors.RESET);
-                            System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 2 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Transfer Amount"+ConsoleColors.RESET);
-                            System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 3 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Change Password"+ConsoleColors.RESET);
-                            System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 4 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Print Transaction Statemant"+ConsoleColors.RESET);
-                            System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 0 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Exit(0)"+ConsoleColors.RESET);
-
-
-                            System.out.println();
-                            System.out.println(ConsoleColors.ORANGE+"        ==================================================================="+ConsoleColors.RESET);
 
                             while (true){
-                                option= sc.nextLine();
+                                System.out.println("       "+ConsoleColors.BLACK_BOLD+ConsoleColors.ORANGE_BACKGROUND+"                     Hello, A/C :("+TEMP_ACCOUNT+") Holder                        "+ConsoleColors.RESET) ;
+
+                                System.out.println();
+                                System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 1 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Check Balance"+ConsoleColors.RESET);
+                                System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 2 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Transfer Amount"+ConsoleColors.RESET);
+                                System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 3 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Change Password"+ConsoleColors.RESET);
+                                System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 4 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Print Transaction Statemant"+ConsoleColors.RESET);
+                                System.out.println(ConsoleColors.ORANGE+"        "+ConsoleColors.RESET+"  Press 0 for"+ConsoleColors.GREEN_BOLD_BRIGHT+" Exit(0)"+ConsoleColors.RESET);
+
+
+                                System.out.println();
+                                System.out.println(ConsoleColors.ORANGE+"        ==================================================================="+ConsoleColors.RESET);
+
+                                System.out.println("Choose Any option.");
+                                option= sc.next();
 
                                 if (option.equals("1")){
 
@@ -232,7 +234,7 @@ public class User_Dashboard {
                                         double balance = userPanel.CheckBalance(TEMP_ACCOUNT,TEMP_USERNAME);
 
                                         System.out.println(ConsoleColors.BOXING+"Current Balance is :"+balance+ConsoleColors.RESET);
-                                        break;
+
 
                                     }
                                     catch (AccountException e){
@@ -260,7 +262,7 @@ public class User_Dashboard {
 
                                         if (resTransfer){
                                             System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.GREEN_BACKGROUND+"Amount Succesfully Transfered from A/C No:"+TEMP_ACCOUNT+" to A/C No.:"+toAccountno+ConsoleColors.RESET);
-                                            break;
+
                                         }
 
                                     } catch (TransactionException e) {
@@ -294,7 +296,7 @@ public class User_Dashboard {
                                         System.out.println(ConsoleColors.RED_ITALIC+"Minimum 6 characters,At least 1 uppercase letter,At least 1 lowercase letter,At least 1 digit,At least 1 special character (@#$%^&+=!)"+ConsoleColors.RESET);
                                         newpw2= sc.next();
 
-                                        pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\\\S+$).{6,}$");
+                                        pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{6,}$");
                                         if (pattern.matcher(e_password).matches()){
                                             break;
                                         }
@@ -305,12 +307,24 @@ public class User_Dashboard {
                                     }
 
                                     if (newpw1.equals(newpw2)){
-                                        boolean resChangepw= userPanel.ChangePassword(TEMP_USERNAME,TEMP_ACCOUNT,oldpw,newpw1);
 
-                                        if (resChangepw){
-                                            System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.GREEN_BACKGROUND+"Password Changed Succesfully."+ConsoleColors.RESET);
-                                            break;
+                                        try{
+                                            boolean resChangepw= userPanel.ChangePassword(TEMP_USERNAME,TEMP_ACCOUNT,oldpw,newpw1);
+                                            if (resChangepw){
+                                                System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.GREEN_BACKGROUND+"Password Changed Succesfully."+ConsoleColors.RESET);
+
+                                            }
+
                                         }
+                                        catch (UserException e){
+                                            System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
+
+                                        }
+
+
+                                    }
+                                    else {
+                                        System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+"Both New password section must be same! Try Again "+ConsoleColors.RESET);
 
                                     }
 
@@ -325,19 +339,19 @@ public class User_Dashboard {
 
                                         System.out.println("---------------------------------------------------------------------------------");
 
-                                        System.out.printf("%-12s %-30s %15s %15s %15s%n",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "Date", "Particulars","Debit", "Credit", "Balance" + ConsoleColors.RESET);
-                                        System.out.println();
+                                        System.out.printf("%12s %18s %45s %50s %55s%n",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "Date", "Particulars","Debit", "Credit", "Balance" + ConsoleColors.RESET);
+//                                        System.out.println();
                                         System.out.println("---------------------------------------------------------------------------------");
 
                                         for (Map map:list){
-                                            System.out.printf("%-12s %-30s %15s %15s %15s%n", map.get("Date"), map.get("Particular"),map.get("DEBIT"), map.get("CREDIT"), map.get("Balance"));
+                                            System.out.printf("%-12s %-40s %18s %13s %17s%n1", map.get("Date"), map.get("Particular"),map.get("DEBIT"), map.get("CREDIT"), map.get("Balance"));
                                             System.out.println();
                                         }
 
 
                                         System.out.println("---------------------------------------------------------------------------------");
 
-                                        break;
+
 
                                     } catch (AccountException e) {
                                         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
@@ -363,11 +377,11 @@ public class User_Dashboard {
 
                     } catch (UserException e) {
                         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
-                        UserDash();
+
                     }
                     catch (Exception e){
                         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
-                        UserDash();
+
                     }
                 }
 

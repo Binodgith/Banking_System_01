@@ -202,7 +202,7 @@ public class Bank_Dashboard {
 
                                                         System.out.println("---------------------------------------------------------------------------------");
 
-                                                        System.out.printf("%-12s %-30s %15s %15s %15s%n ",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "Date", "Particulars","Debit", "Credit", "Balance" + ConsoleColors.RESET);
+                                                        System.out.printf("%-12s %-30s %15s %15s %15s%n",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "Date", "Particulars","Debit", "Credit", "Balance" + ConsoleColors.RESET);
                                                         System.out.println();
                                                         System.out.println("---------------------------------------------------------------------------------");
 

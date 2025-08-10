@@ -210,7 +210,7 @@ public class UserPanel implements UserInterface{
                                 if(json.getBoolean("verify_status")) {
                                     OTP_Verified=true;
                                     Temp_username=username;
-                                    Temp_accountno= res2.getLong("email");
+                                    Temp_accountno= res2.getLong("accountno");
                                     System.out.println(json.getString("message"));
                                     break;
                                 }
@@ -515,13 +515,13 @@ public class UserPanel implements UserInterface{
     public boolean ChangePassword(String username, long accountno,String oldpassword, String newpassword) throws UserException {
 
         try{
-            connection = connector.getConnection();
+
 //            String EncryptPassword= encrypter.hashPassword(oldpassword);
             long resAccount= UserLogin(username,oldpassword);
-
+            connection = connector.getConnection();
             if (resAccount==accountno){
                 pst= connection.prepareStatement("update user_account set password=? where username=? and accountno=?");
-                pst.setString(1,encrypter.hashPassword(oldpassword));
+                pst.setString(1,encrypter.hashPassword(newpassword));
                 pst.setString(2,username);
                 pst.setLong(3,accountno);
 
