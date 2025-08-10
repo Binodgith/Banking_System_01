@@ -19,14 +19,14 @@ public class BankPanel extends UserPanel implements BankInterface{
 
     DBConnector connector= new DBConnector();
     PasswordEncrypter encrypter= new PasswordEncrypter();
-    UserAccount user;
+    UserAccount user=null;
     Connection connection;
     PreparedStatement pst;
 
 //    static long Temp_accountno;
 //    static String Temp_username;
     EmailConnector ec;
-    JSONObject json;
+    JSONObject json = new JSONObject();
 
 
 
@@ -50,9 +50,9 @@ public class BankPanel extends UserPanel implements BankInterface{
 
                 try{
                     ec= new EmailConnector();
-                    String APIResponse= ec.SendOtp(res2.getString("email"),res2.getString("name"));
+                    String APIResponse= ec.SendOtp(res2.getString("email"),(res2.getString("name")).split("\\s+")[0]);
                     json = new JSONObject(APIResponse);
-                    Scanner scanner = null;
+                    Scanner scanner = new Scanner(System.in);
                     boolean OTP_Verified=false;
 
                     if(json.getBoolean("sent_status")){
@@ -129,11 +129,13 @@ public class BankPanel extends UserPanel implements BankInterface{
             List<UserAccount>  list= new ArrayList<>();
 
             connection= connector.getConnection();
-            pst=connection.prepareStatement("select username,accountno,name,email,mobile,aadharno,balance,account_active from user_account");
+            pst=connection.prepareStatement("SELECT username, accountno, name, email, mobile, aadharno, balance, account_active FROM user_account");
 
             ResultSet res = pst.executeQuery();
             while (res.next()){
-                list.add(new UserAccount(res.getString("username"),res.getString("email"),res.getString("mobile"),res.getString("aadharno"),res.getString("name"),res.getLong("accountno"),res.getDouble("balance"),res.getBoolean("account_active")));
+
+                user= new UserAccount(res.getString("username"),res.getString("email"),res.getString("mobile"),res.getString("aadharno"),res.getString("name"),res.getObject("accountno", Long.class),res.getObject("balance", Double.class),res.getBoolean("account_active"));
+                list.add(user);
             }
 
             return list;
@@ -171,6 +173,7 @@ public class BankPanel extends UserPanel implements BankInterface{
 
             ResultSet res = pst.executeQuery();
             while (res.next()){
+
                 list.add(new BankStaff(res.getString("email"),res.getString("mobile"),res.getString("aadharno"),res.getString("role"),res.getString("name")));
             }
 
@@ -207,16 +210,16 @@ public class BankPanel extends UserPanel implements BankInterface{
 
                 System.out.println(ConsoleColors.BOXING+ConsoleColors.BROWN_BACKGROUND+"              Table of Account Request List            "+ConsoleColors.RESET);
 
-                System.out.println("---------------------------------------------------------------------------------");
+                System.out.println("-------------------------------------------------------------------------------------------------------------------");
 
-                System.out.printf("%7s %7.5s %8.5s %10s %15s %17s %16s",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "User Name", "Name","Email Id", "Mobile no.", "Aadhar No.", "Account Status", "Account Number" + ConsoleColors.RESET);
+                System.out.printf("%-15s %-20s %-30s %-15s %-15s %-17s %-15s%n",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "User Name", "Name","Email Id", "Mobile no.", "Aadhar No.", "Account Status", "Account Number" + ConsoleColors.RESET);
                 System.out.println();
-			    System.out.print("---------------------------------------------------------------------------------");
+			    System.out.println("--------------------------------------------------------------------------------------------------------------------");
                 while (res.next()){
-                    System.out.printf("%7s %7.5s %8.5s %10s %15s %17s %16s", res.getString("username"), res.getString("name"),res.getString("email"), res.getString("mobile"), res.getString("aadharno"), res.getString("account_active"), "Not Generated");
-
+                    System.out.printf("%-15s %-20s %-30s %-15s %-15s %-17s %-15s%n", res.getString("username"), res.getString("name"),res.getString("email"), res.getString("mobile"), res.getString("aadharno"), res.getString("account_active"), "Not Generated");
+                    System.out.println();
                 }
-                System.out.println("---------------------------------------------------------------------------------");
+                System.out.println("-------------------------------------------------------------------------------------------------------------------");
 
 
         }
@@ -264,6 +267,13 @@ public class BankPanel extends UserPanel implements BankInterface{
                         int res3= pst.executeUpdate();
 
                         if (res3>0){
+                            pst= connection.prepareStatement("select name,username,email,accountno from user_account where username=?");
+                            pst.setString(1,username);
+
+                            ResultSet res4 = pst.executeQuery();
+                            ec= new EmailConnector();
+                            ec.sendAcccountConfirmation(res4.getString("username"),res4.getString("email"),res4.getLong("accountno"),res4.getString("name"));
+
                             return true;
                         }
                         else{

@@ -58,8 +58,8 @@ public class User_Dashboard {
             String option= sc.nextLine();
 
             if (option.equals("1")){
-                System.out.println(ConsoleColors.BLACK_BOLD+ConsoleColors.ORANGE_BACKGROUND+"  Fill User Registration Form.                        "+ConsoleColors.RESET);
                 while (true){
+                    System.out.println(ConsoleColors.BLACK_BOLD+ConsoleColors.ORANGE_BACKGROUND+"  Fill User Registration Form.                        "+ConsoleColors.RESET);
                     System.out.println("Enter Username");
                     String e_username= sc.next();
 
@@ -72,8 +72,9 @@ public class User_Dashboard {
                                 String e_name; String e_email; String e_mobile; String e_aadharno; String e_password; int e_pin;
                                 System.out.println(ConsoleColors.GREEN_BRIGHT+"Username Available"+ConsoleColors.RESET);
 
+                                sc.nextLine();
                                 System.out.println("Enter Your Name.");
-                                e_name= sc.next();
+                                e_name= sc.nextLine();
 
                                 while (true){
                                     System.out.println("Enter Email ID.");
@@ -136,7 +137,7 @@ public class User_Dashboard {
 
                                 while (true){
                                     System.out.println("Enter Transaction Pin");
-                                    System.out.println(ConsoleColors.RED_ITALIC+"Minimum 6 characters,At least 1 uppercase letter,At least 1 lowercase letter,At least 1 digit,At least 1 special character (@#$%^&+=!)"+ConsoleColors.RESET);
+                                    System.out.println(ConsoleColors.RED_ITALIC+"4 Transaction Security Pin"+ConsoleColors.RESET);
                                     e_pin= sc.nextInt();
 
                                     pattern = Pattern.compile("^\\d{4}$");
@@ -153,7 +154,7 @@ public class User_Dashboard {
 
                                 if (accountres){
                                     System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.GREEN_BACKGROUND+"Account Created Succesfully . Your account is pending for Approval."+ConsoleColors.RESET);
-                                    break;
+                                    UserDash();
                                 }
 
 
@@ -164,8 +165,15 @@ public class User_Dashboard {
                         } catch (CredentialException e) {
                             System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
 
+                        } catch (RuntimeException e) {
+                            System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
+
                         }
                         catch (AccountException e) {
+                            System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
+
+                        }
+                        catch (Exception e){
                             System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
 
                         }
@@ -233,6 +241,7 @@ public class User_Dashboard {
                                     }
                                     catch (Exception e){
                                         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
+
 
                                     }
 
@@ -312,17 +321,17 @@ public class User_Dashboard {
                                     try{
                                         List<Map> list= userPanel.TransactionStatement(TEMP_ACCOUNT,TEMP_USERNAME);
 
-                                        System.out.println(ConsoleColors.BOXING+ConsoleColors.BROWN_BACKGROUND+"              Table of Account Request List            "+ConsoleColors.RESET);
+                                        System.out.println(ConsoleColors.BOXING+ConsoleColors.BROWN_BACKGROUND+"                                 Account Statement                        "+ConsoleColors.RESET);
 
                                         System.out.println("---------------------------------------------------------------------------------");
 
-                                        System.out.printf("%7s %7.5s %8.5s %10s %15s ",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "Date", "Particulars","Debit", "Credit", "Balance" + ConsoleColors.RESET);
+                                        System.out.printf("%-12s %-30s %15s %15s %15s%n",ConsoleColors.BROWN_BACKGROUND+ConsoleColors.WHITE_BOLD_BRIGHT  + "Date", "Particulars","Debit", "Credit", "Balance" + ConsoleColors.RESET);
                                         System.out.println();
-                                        System.out.print("---------------------------------------------------------------------------------");
+                                        System.out.println("---------------------------------------------------------------------------------");
 
                                         for (Map map:list){
-                                            System.out.printf("%7s %7.5s %8.5s %10s %15s", map.get("Date"), map.get("Particular"),map.get("DEBIT"), map.get("CREDIT"), map.get("Balance"));
-
+                                            System.out.printf("%-12s %-30s %15s %15s %15s%n", map.get("Date"), map.get("Particular"),map.get("DEBIT"), map.get("CREDIT"), map.get("Balance"));
+                                            System.out.println();
                                         }
 
 
@@ -354,11 +363,11 @@ public class User_Dashboard {
 
                     } catch (UserException e) {
                         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
-
+                        UserDash();
                     }
                     catch (Exception e){
                         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT+ConsoleColors.DARK_RED_BACKGROUND+e.getMessage()+ConsoleColors.RESET);
-
+                        UserDash();
                     }
                 }
 

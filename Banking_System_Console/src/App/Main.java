@@ -14,7 +14,13 @@ public class Main {
 
 
 
-    static void HomeDash() throws IOException {
+
+
+
+//    ----------------------------------Home page ------------------------------------------
+
+
+    public static void HomeDash() throws IOException {
        Scanner sc= new Scanner(System.in);
        Bank_Dashboard bank= new Bank_Dashboard();
         User_Dashboard user= new User_Dashboard();

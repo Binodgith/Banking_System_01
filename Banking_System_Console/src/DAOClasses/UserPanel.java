@@ -1,5 +1,6 @@
 package DAOClasses;
 
+import App.Main;
 import Exceptions.*;
 import Models.TransactionStatement;
 import Models.UserAccount;
@@ -25,25 +26,29 @@ public class UserPanel implements UserInterface{
     static long Temp_accountno;
     static String Temp_username;
     EmailConnector ec;
-    JSONObject json;
+    JSONObject json=new JSONObject();
 
     @Override
     public boolean CreateAccount(UserAccount uc) throws CredentialException, AccountException {
         try{
             connection = connector.getConnection();
-            pst= connection.prepareStatement("select * from account_requests cross join user_account where username=? or email=? or mobile=? or aadharno=?");
+            pst= connection.prepareStatement("select * from account_requests cross join user_account where account_requests.username=? or account_requests.email=? or account_requests.mobile=? or account_requests.aadharno=? or user_account.username=? or user_account.email=? or user_account.mobile=? or user_account.aadharno=?");
             pst.setString(1,uc.getUsername());
             pst.setString(2, uc.getEmail());
             pst.setString(3, uc.getMobile());
             pst.setString(4, uc.getAadhar());
+            pst.setString(5,uc.getUsername());
+            pst.setString(6, uc.getEmail());
+            pst.setString(7, uc.getMobile());
+            pst.setString(8, uc.getAadhar());
 
             ResultSet res= pst.executeQuery();
 
             if(!res.next()){
                 ec= new EmailConnector();
-                String APIResponse= ec.SendOtp(uc.getEmail(),uc.getName());
+                String APIResponse= ec.SendOtp(uc.getEmail(),(uc.getName()).split("\\s+")[0]);
                 json = new JSONObject(APIResponse);
-                Scanner scanner = null;
+                Scanner scanner = new Scanner(System.in);
                 boolean OTP_Verified=false;
 
                 if(json.getBoolean("sent_status")){
@@ -51,7 +56,7 @@ public class UserPanel implements UserInterface{
                     System.out.println(ConsoleColors.GREEN_BRIGHT+json.getString("message")+ConsoleColors.RESET);
                     int entryCount=0;
                     while (!OTP_Verified){
-                        System.out.println("Enter Email Otp (Valid till 5 minutes only");
+                        System.out.println("Enter Email Otp (Valid till 5 minutes only)");
                         int otp= scanner.nextInt();
                         String OTPResponse= ec.verifyOTp(otp, uc.getEmail(), otp_token);
 
@@ -187,9 +192,9 @@ public class UserPanel implements UserInterface{
 
                     try{
                         ec= new EmailConnector();
-                        String APIResponse= ec.SendOtp(res2.getString("email"),res2.getString("name"));
+                        String APIResponse= ec.SendOtp(res2.getString("email"),(res2.getString("name")).split("\\s+")[0]);
                         json = new JSONObject(APIResponse);
-                        Scanner scanner = null;
+                        Scanner scanner = new Scanner(System.in);
                         boolean OTP_Verified=false;
 
                         if(json.getBoolean("sent_status")){
@@ -282,7 +287,10 @@ public class UserPanel implements UserInterface{
 
             ResultSet res= pst.executeQuery();
 
-            return res.getDouble("balance");
+            if(res.next()) return res.getDouble("balance");
+            else throw new AccountException("No bank account found !");
+
+
         }
         catch (Exception e){
             throw new AccountException(e.getMessage());
@@ -309,7 +317,7 @@ public class UserPanel implements UserInterface{
 
         try{
             connection= connector.getConnection();
-            pst= connection.prepareStatement("select balance from user_account when accountno=?");
+            pst= connection.prepareStatement("select balance from user_account where accountno=?");
             pst.setLong(1,accountno);
 
 
@@ -325,10 +333,17 @@ public class UserPanel implements UserInterface{
 
                         int res2= pst.executeUpdate();
                         if(res2>0){
-                            String Remark= "Amount Debited from AC No.: "+accountno+" via User.";
-                            boolean ReportRes=AddTransaction(accountno,Remark,"DEBIT",amount);
-                            if (ReportRes) return true;
-                            else throw  new TransactionException("Unable to Add Report ! Try Again.");
+                            if (isbank){
+                                String Remark= "Amount Withdrwal from AC No.: "+accountno+" via Bank.";
+                                boolean ReportRes=AddTransaction(accountno,Remark,"DEBIT",amount);
+                                if (ReportRes) return true;
+                                else throw  new TransactionException("Unable to Add Report ! Try Again.");
+                            }
+                            else {
+                                return true;
+                            }
+
+
 
                         }
                         else{
@@ -386,7 +401,7 @@ public class UserPanel implements UserInterface{
             int res= pst.executeUpdate();
             if(res>0){
                 if (isbank){
-                    String Remark= "Amount Credited from AC No.: "+accountno+" via Bank.";
+                    String Remark= "Amount Deposited to AC No.: "+accountno+" via Bank.";
                     boolean ReportRes=AddTransaction(accountno,Remark,"CREDIT",amount);
                     if (ReportRes) return true;
                     else throw  new TransactionException("Unable to Add Report ! Try Again.");
@@ -601,18 +616,17 @@ public class UserPanel implements UserInterface{
                     "            ELSE 0" +
                     "        END" +
                     "    ) OVER (" +
-                    "        ORDER BY date, transactionid" +
+                    "        ORDER BY date, transactionid " +
                     "        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW" +
-                    "    ) AS Balance" +
+                    "    ) AS Balance " +
                     "" +
-                    "FROM transaction_statement" +
-                    "WHERE accountno =? AND username=?" +
+                    "FROM transaction_statement " +
+                    "WHERE accountno =?" +
                     "ORDER BY date DESC, transactionid DESC";
 
             connection= connector.getConnection();
             pst= connection.prepareStatement(SQL_Query);
             pst.setDouble(1,accountno);
-            pst.setString(2,username);
 
             ResultSet res= pst.executeQuery();
 

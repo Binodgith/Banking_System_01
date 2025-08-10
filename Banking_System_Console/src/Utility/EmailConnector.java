@@ -1,6 +1,7 @@
 package Utility;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -23,6 +24,7 @@ public class EmailConnector {
 
 
     public String SendOtp(String email, String name){
+        System.out.println("Sending OTP......");
 
         try{
             client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
@@ -45,6 +47,7 @@ public class EmailConnector {
     }
 
     public String verifyOTp(int otp,String email, long token){
+        System.out.println("Verifing......");
         try{
             client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
@@ -64,6 +67,48 @@ public class EmailConnector {
         return responseBody;
     }
 
+
+    public String sendAcccountConfirmation(String username,String email, long accountno,String name){
+        try {
+
+            String jsonBody="{ \"username\":\""+username+"\", \"email\": \""+email+"\",\"accountno\":"+accountno+",\"name\":\""+name+"\"}";
+
+
+            client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+
+            request =  HttpRequest.newBuilder()
+                    .uri(new URI(APIurl+"?BankAccountConfirm=true"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        }
+        catch (InterruptedException  e){
+            e.printStackTrace();
+        }  catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String responseBody= response.body().replace("[","").replace("]","");
+        return responseBody;
+    }
+
+
+    public static void main(String[] args) {
+//        JSONObject json;
+//        EmailConnector ec = new EmailConnector();
+//        String res= ec.SendOtp("dbinod2020@gmail.com","Bino");
+//        json = new JSONObject(res);
+//        System.out.println(json.getString("message"));
+
+//        String res= ec.sendAcccountConfirmation("kalua12","cdigital898@gmail.com",10010025,"kalua");
+//        System.out.println(json.getString("message"));
+
+    }
 
 //    public static void main(String[] args) {
 //
