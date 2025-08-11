@@ -271,10 +271,17 @@ public class BankPanel extends UserPanel implements BankInterface{
                             pst.setString(1,username);
 
                             ResultSet res4 = pst.executeQuery();
-                            ec= new EmailConnector();
-                            ec.sendAcccountConfirmation(res4.getString("username"),res4.getString("email"),res4.getLong("accountno"),res4.getString("name"));
+                            if(res4.next()){
+                                ec= new EmailConnector();
+                                ec.sendAcccountConfirmation(res4.getString("username"),res4.getString("email"),res4.getLong("accountno"),res4.getString("name"));
 
-                            return true;
+                                return true;
+                            }
+                            else{
+                                throw new AccountException("Unable to Delete approve request! Try Again");
+
+                            }
+
                         }
                         else{
                             throw new AccountException("Unable to insert approve request! Try Again");
