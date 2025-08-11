@@ -43,5 +43,16 @@ Bank Management System is a Java application that allows users to manage their b
 ## ER Diagram of Application (Database Connection)
 ![Slide2](https://github.com/user-attachments/assets/48d5fa8d-0d6f-448e-8c1c-dbc3c79ac472)
 
+## Sreenshort of implemented Interface
+![Slide2](https://github.com/user-attachments/assets/48d5fa8d-0d6f-448e-8c1c-dbc3c79ac472)
+![Slide2](https://github.com/user-attachments/assets/48d5fa8d-0d6f-448e-8c1c-dbc3c79ac472)
+![Slide2](https://github.com/user-attachments/assets/48d5fa8d-0d6f-448e-8c1c-dbc3c79ac472)
 
+
+
+## Feedback
+
+Feel free to give your feedback on this project to binod.portfolio@gmail.com
+
+Kindly rate a star⭐ If you have liked this project
 
